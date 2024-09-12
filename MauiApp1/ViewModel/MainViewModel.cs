@@ -7,9 +7,11 @@ namespace MauiApp1.ViewModel
 {
     public partial class MainViewModel : ObservableObject
     {
-        public MainViewModel()
+        IConnectivity connectivity;
+        public MainViewModel(IConnectivity connectivity)
         {
             items = new ObservableCollection<string>();
+            this.connectivity = connectivity;
         }
 
         [ObservableProperty]
@@ -19,10 +21,16 @@ namespace MauiApp1.ViewModel
         string text;
 
         [RelayCommand]
-        void Add()
+        async void Add()
         {
             if (string.IsNullOrWhiteSpace(text))
                 return;
+
+            if(connectivity.NetworkAccess != NetworkAccess.Internet) 
+            {
+                await Shell.Current.DisplayAlert("Uh oh!", "No internet", "Ok");
+                return;
+            }
 
             items.Add(text);
             text = string.Empty;
@@ -32,6 +40,12 @@ namespace MauiApp1.ViewModel
         void Delete(string s) 
         {
             if (Items.Contains(s)) { Items.Remove(s); }
+        }
+
+        [RelayCommand]
+        async Task Tap(string s)
+        {
+            await Shell.Current.GoToAsync($"{nameof(DetailPage)}?Text={s}");
         }
     }
 }
